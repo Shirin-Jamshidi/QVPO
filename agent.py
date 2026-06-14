@@ -29,9 +29,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from .diffusion   import GaussianDiffusion, EpsilonNet
-from .critic      import TwinQNetwork
-from .replay_buffer import ReplayBuffer
+try:
+    from .diffusion import GaussianDiffusion, EpsilonNet
+    from .critic import TwinQNetwork
+    from .replay_buffer import ReplayBuffer
+except ImportError:
+    from diffusion import GaussianDiffusion, EpsilonNet
+    from critic import TwinQNetwork
+    from replay_buffer import ReplayBuffer
 
 
 class QVPO:
