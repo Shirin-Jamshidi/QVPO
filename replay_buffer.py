@@ -16,7 +16,7 @@ class ReplayBuffer:
         self,
         state_dim:  int,
         action_dim: int,
-        capacity:   int = 300_000,
+        capacity:   int = 100_000,
         device:     torch.device = torch.device("cpu"),
     ):
         self.capacity   = capacity
