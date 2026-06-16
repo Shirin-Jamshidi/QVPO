@@ -153,7 +153,7 @@ def train(cfg: argparse.Namespace):
     set_seed(cfg.seed)
 
     # ── Environment ──────────────────────────────────────────────────────────
-    env = ContinuousCartPoleEnv(seed=seed)
+    env = ContinuousCartPoleEnv(seed=cfg.seed)
     STATE_DIM = env.observation_space_shape[0]   # 4
     ACTION_DIM = 1         # 1
 
