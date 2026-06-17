@@ -226,6 +226,7 @@ def train(cfg: argparse.Namespace):
                 policy_loss=metrics["loss_q_vlo"],   # main one
                 critic_loss=metrics["loss_critic"]
             )
+            tracker.save("qvpo_metrics.npz")
 
 
     # ── Final evaluation (20 episodes, print each) ──────────────────────────
