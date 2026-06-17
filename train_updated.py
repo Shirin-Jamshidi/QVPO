@@ -221,12 +221,6 @@ def train(cfg: argparse.Namespace):
                 log[k].append(v)
 
             
-            # tracker.log_step(
-            #     step=global_step,
-            #     policy_loss=metrics["loss_q_vlo"],   # main one
-            #     critic_loss=metrics["loss_critic"]
-            # )
-            # tracker.save("qvpo_metrics.npz")
         # ── Periodic evaluation ───────────────────────────────
         if global_step % cfg.eval_interval == 0 and global_step > 0:
             returns = []
@@ -248,11 +242,12 @@ def train(cfg: argparse.Namespace):
 
             env_eval.close()
 
+
             tracker.log_eval(
                 step=global_step,
                 returns=returns
             )
-            tracker.save("qvpo_metrics.npz")
+        tracker.save("qvpo_metrics.npz")
 
     # ── Final evaluation (20 episodes, print each) ──────────────────────────
     env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 1234)
