@@ -222,30 +222,30 @@ def train(cfg: argparse.Namespace):
 
             
         # ── Periodic evaluation ───────────────────────────────
-        if global_step % cfg.eval_interval == 0 and global_step > 0:
-            returns = []
+        # if global_step % cfg.eval_interval == 0 and global_step > 0:
+        #     returns = []
 
-            env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
+        #     env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
 
-            for ep in range(cfg.eval_episodes):
-                s, _ = env_eval.reset()
-                done = False
-                ep_ret = 0.0
+        #     for ep in range(cfg.eval_episodes):
+        #         s, _ = env_eval.reset()
+        #         done = False
+        #         ep_ret = 0.0
 
-                while not done:
-                    a = agent.select_action(s)
-                    s, r, term, trunc, _ = env_eval.step(a)
-                    ep_ret += r
-                    done = term or trunc
+        #         while not done:
+        #             a = agent.select_action(s)
+        #             s, r, term, trunc, _ = env_eval.step(a)
+        #             ep_ret += r
+        #             done = term or trunc
 
-                returns.append(ep_ret)
+        #         returns.append(ep_ret)
 
-            env_eval.close()
+        #     env_eval.close()
 
 
         tracker.log_eval(
             step=global_step,
-            returns=returns
+            returns=ep_return,
             )
         tracker.save("qvpo_metrics.npz")
 
