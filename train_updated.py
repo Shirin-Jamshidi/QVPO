@@ -15,7 +15,7 @@ import gymnasium as gym
 
 from agent        import QVPO
 from replay_buffer import ReplayBuffer
-
+from metrics import MetricsTracker
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Continuous CartPole environment
@@ -176,6 +176,7 @@ def train(cfg: argparse.Namespace):
     ep_return   = 0.0
     ep_count    = 0
     global_step = 0
+    tracker = MetricsTracker("QVPO")
 
     print(f"\n{'='*60}")
     print(f"  QVPO — CartPole-v1  |  T={cfg.n_diffusion_steps}  Nd={cfg.n_policy_samples}"
@@ -219,24 +220,14 @@ def train(cfg: argparse.Namespace):
             for k, v in metrics.items():
                 log[k].append(v)
 
-        # # ── Periodic evaluation ───────────────────────────────────────────────
-        # if global_step % cfg.eval_interval == 0 and global_step >= cfg.warmup_steps:
-        #     eval_ret = evaluate(agent, n_episodes=cfg.eval_episodes, seed=cfg.seed + 999)
-        #     log["eval_return"].append(eval_ret)
-        #     print(f"\n  ── Eval @ step {global_step:,}  mean_return={eval_ret:.1f} ──\n")
+            
+            tracker.log_step(
+                step=global_step,
+                policy_loss=metrics["loss_q_vlo"],   # main one
+                critic_loss=metrics["loss_critic"]
+            )
 
-        #     # Save checkpoint
-        #     ckpt_path = os.path.join(cfg.save_dir, f"qvpo_{global_step}.pt")
-        #     agent.save(ckpt_path)
 
-    # ── Final evaluation ──────────────────────────────────────────────────────
-    # final_ret = evaluate(agent, n_episodes=20, seed=cfg.seed + 1234)
-    # print(f"\n{'='*60}")
-    # print(f"  Final eval (20 eps):  mean={final_ret:.1f}")
-    # print(f"{'='*60}")
-
-    # agent.save(os.path.join(cfg.save_dir, "qvpo_final.pt"))
-    # np.save(os.path.join(cfg.save_dir, "log.npy"), log)
     # ── Final evaluation (20 episodes, print each) ──────────────────────────
     env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 1234)
 
