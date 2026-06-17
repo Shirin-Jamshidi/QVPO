@@ -252,6 +252,7 @@ def train(cfg: argparse.Namespace):
                 step=global_step,
                 returns=returns
             )
+            tracker.save("qvpo_metrics.npz")
 
     # ── Final evaluation (20 episodes, print each) ──────────────────────────
     env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 1234)
