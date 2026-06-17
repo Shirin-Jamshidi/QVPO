@@ -3,26 +3,6 @@
 QVPO on CartPole-v1  —  standalone training script.
 
 CartPole adaptation
--------------------
-CartPole-v1's native action space is Discrete(2).  QVPO requires a
-continuous action space (the diffusion model lives in R^{action_dim}).
-We wrap the environment so that:
-  - The policy outputs a continuous scalar a ∈ [-1, 1]
-  - We map  a < 0  →  gym action 0 (push left)
-           a ≥ 0  →  gym action 1 (push right)
-This preserves the CartPole dynamics while giving QVPO a 1-D continuous
-action space to model.
-
-Algorithm 1 mapping (paper → this script)
------------------------------------------
-  Lines 1-3  : interaction loop  (collect_steps)
-  Lines 4-11 : agent.train_step  (one gradient step per env step)
-
-Run
----
-  python train.py                         # defaults
-  python train.py --seed 1 --K_b 10      # custom K_b
-  python train.py --headless              # no eval renders
 """
 
 import os
@@ -239,22 +219,52 @@ def train(cfg: argparse.Namespace):
             for k, v in metrics.items():
                 log[k].append(v)
 
-        # ── Periodic evaluation ───────────────────────────────────────────────
-        if global_step % cfg.eval_interval == 0 and global_step >= cfg.warmup_steps:
-            eval_ret = evaluate(agent, n_episodes=cfg.eval_episodes, seed=cfg.seed + 999)
-            log["eval_return"].append(eval_ret)
-            print(f"\n  ── Eval @ step {global_step:,}  mean_return={eval_ret:.1f} ──\n")
+        # # ── Periodic evaluation ───────────────────────────────────────────────
+        # if global_step % cfg.eval_interval == 0 and global_step >= cfg.warmup_steps:
+        #     eval_ret = evaluate(agent, n_episodes=cfg.eval_episodes, seed=cfg.seed + 999)
+        #     log["eval_return"].append(eval_ret)
+        #     print(f"\n  ── Eval @ step {global_step:,}  mean_return={eval_ret:.1f} ──\n")
 
-            # Save checkpoint
-            ckpt_path = os.path.join(cfg.save_dir, f"qvpo_{global_step}.pt")
-            agent.save(ckpt_path)
+        #     # Save checkpoint
+        #     ckpt_path = os.path.join(cfg.save_dir, f"qvpo_{global_step}.pt")
+        #     agent.save(ckpt_path)
 
     # ── Final evaluation ──────────────────────────────────────────────────────
-    final_ret = evaluate(agent, n_episodes=20, seed=cfg.seed + 1234)
+    # final_ret = evaluate(agent, n_episodes=20, seed=cfg.seed + 1234)
+    # print(f"\n{'='*60}")
+    # print(f"  Final eval (20 eps):  mean={final_ret:.1f}")
+    # print(f"{'='*60}")
+
+    # agent.save(os.path.join(cfg.save_dir, "qvpo_final.pt"))
+    # np.save(os.path.join(cfg.save_dir, "log.npy"), log)
+    # ── Final evaluation (20 episodes, print each) ──────────────────────────
+    env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 1234)
+
+    returns = []
+    for ep in range(20):
+        state, _ = env_eval.reset(seed=cfg.seed + 1234 + ep)
+        ep_ret = 0.0
+        done = False
+
+        while not done:
+            action = agent.select_action(state)
+            state, reward, term, trunc, _ = env_eval.step(action)
+            ep_ret += reward
+            done = term or trunc
+
+        returns.append(ep_ret)
+        print(f"Eval Episode {ep + 1:2d}: return = {ep_ret:.1f}")
+
+    env_eval.close()
+
+    final_ret = float(np.mean(returns))
+
     print(f"\n{'='*60}")
-    print(f"  Final eval (20 eps):  mean={final_ret:.1f}")
+    print("Final Evaluation Summary (20 episodes)")
+    print(f"Mean Return: {final_ret:.1f}")
     print(f"{'='*60}")
 
+    # Save final model + log
     agent.save(os.path.join(cfg.save_dir, "qvpo_final.pt"))
     np.save(os.path.join(cfg.save_dir, "log.npy"), log)
     env.close()
