@@ -221,13 +221,37 @@ def train(cfg: argparse.Namespace):
                 log[k].append(v)
 
             
-            tracker.log_step(
-                step=global_step,
-                policy_loss=metrics["loss_q_vlo"],   # main one
-                critic_loss=metrics["loss_critic"]
-            )
-            tracker.save("qvpo_metrics.npz")
+            # tracker.log_step(
+            #     step=global_step,
+            #     policy_loss=metrics["loss_q_vlo"],   # main one
+            #     critic_loss=metrics["loss_critic"]
+            # )
+            # tracker.save("qvpo_metrics.npz")
+        # ── Periodic evaluation ───────────────────────────────
+        if global_step % cfg.eval_interval == 0 and global_step > 0:
+            returns = []
 
+            env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
+
+            for ep in range(cfg.eval_episodes):
+                s, _ = env_eval.reset()
+                done = False
+                ep_ret = 0.0
+
+                while not done:
+                    a = agent.select_action(s)
+                    s, r, term, trunc, _ = env_eval.step(a)
+                    ep_ret += r
+                    done = term or trunc
+
+                returns.append(ep_ret)
+
+            env_eval.close()
+
+            tracker.log_eval(
+                step=global_step,
+                returns=returns
+            )
 
     # ── Final evaluation (20 episodes, print each) ──────────────────────────
     env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 1234)
@@ -303,7 +327,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--replay_capacity",   type=int,   default=300_000)
 
     # Training schedule
-    p.add_argument("--total_steps",       type=int,   default=100_000,
+    p.add_argument("--total_steps",       type=int,   default=10_000,
                    help="Total environment steps")
     p.add_argument("--warmup_steps",      type=int,   default=1_000,
                    help="Random-action steps before training begins")
