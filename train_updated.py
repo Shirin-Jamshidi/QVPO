@@ -243,9 +243,9 @@ def train(cfg: argparse.Namespace):
             env_eval.close()
 
 
-            tracker.log_eval(
-                step=global_step,
-                returns=returns
+        tracker.log_eval(
+            step=global_step,
+            returns=returns
             )
         tracker.save("qvpo_metrics.npz")
 
