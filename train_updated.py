@@ -205,7 +205,7 @@ def train(cfg: argparse.Namespace):
             log["step"].append(global_step)
             log["ep_return"].append(ep_return)
 
-            if ep_count % cfg.log_interval == 0:
+            if ep_count % cfg.eval_interval == 0:
                 recent = np.mean(log["ep_return"][-20:])
                 print(f"  step={global_step:7d}  ep={ep_count:4d}  "
                       f"ret(last20)={recent:6.1f}  buffer={len(replay):6d}")
