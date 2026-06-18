@@ -209,6 +209,29 @@ def train(cfg: argparse.Namespace):
                 recent = np.mean(log["ep_return"][-20:])
                 print(f"  step={global_step:7d}  ep={ep_count:4d}  "
                       f"ret(last20)={recent:6.1f}  buffer={len(replay):6d}")
+                returns = []
+
+                env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
+
+                for ep in range(cfg.eval_episodes):
+                    s, _ = env_eval.reset()
+                    done = False
+                    ep_ret = 0.0
+
+                    while not done:
+                        a = agent.select_action(s)
+                        s, r, term, trunc, _ = env_eval.step(a)
+                        ep_ret += r
+                        done = term or trunc
+
+                    returns.append(ep_ret)
+
+                env_eval.close()
+
+                tracker.log_eval(
+                    step=global_step,
+                    returns=returns   # ✅ THIS MUST BE A LIST
+                )
 
             ep_return = 0.0
             state, _  = env.reset()
@@ -225,31 +248,8 @@ def train(cfg: argparse.Namespace):
             for k, v in metrics.items():
                 log[k].append(v)
                 
-        if global_step % cfg.eval_interval == 0 and global_step > 0:
+        # if global_step % cfg.eval_interval == 0 and global_step > 0:
 
-            returns = []
-
-            env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
-
-            for ep in range(cfg.eval_episodes):
-                s, _ = env_eval.reset()
-                done = False
-                ep_ret = 0.0
-
-                while not done:
-                    a = agent.select_action(s)
-                    s, r, term, trunc, _ = env_eval.step(a)
-                    ep_ret += r
-                    done = term or trunc
-
-                returns.append(ep_ret)
-
-            env_eval.close()
-
-            tracker.log_eval(
-                step=global_step,
-                returns=returns   # ✅ THIS MUST BE A LIST
-            )
 
     tracker.save("qvpo_metrics.npz")
 
