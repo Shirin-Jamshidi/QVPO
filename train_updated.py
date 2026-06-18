@@ -217,6 +217,12 @@ def train(cfg: argparse.Namespace):
         if (len(replay) >= cfg.batch_size and
                 global_step >= cfg.warmup_steps):
             metrics = agent.train_step(replay, cfg.batch_size)
+            tracker.log_step(
+                step=global_step,
+                policy_loss=metrics["loss_q_vlo"],   # main one
+                critic_loss=metrics["loss_critic"],
+                returns=ep_return,
+            )
             for k, v in metrics.items():
                 log[k].append(v)
 
