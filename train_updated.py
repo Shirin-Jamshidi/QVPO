@@ -327,7 +327,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--replay_capacity",   type=int,   default=300_000)
 
     # Training schedule
-    p.add_argument("--total_steps",       type=int,   default=10_000,
+    p.add_argument("--total_steps",       type=int,   default=100_000,
                    help="Total environment steps")
     p.add_argument("--warmup_steps",      type=int,   default=1_000,
                    help="Random-action steps before training begins")
