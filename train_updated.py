@@ -221,7 +221,6 @@ def train(cfg: argparse.Namespace):
                 step=global_step,
                 policy_loss=metrics["loss_q_vlo"],   # main one
                 critic_loss=metrics["loss_critic"],
-                returns=ep_return,
             )
             for k, v in metrics.items():
                 log[k].append(v)
