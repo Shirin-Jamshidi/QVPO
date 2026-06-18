@@ -234,14 +234,14 @@ class QVPO:
             self.eps_net, s, omega_ent_s, n_uniform=self.Ne
         )
 
-        loss_total = loss_q + loss_e
+        loss_total = loss_q #+ loss_e
 
         self.opt_actor.zero_grad()
         loss_total.backward()
         nn.utils.clip_grad_norm_(self.eps_net.parameters(), 1.0)
         self.opt_actor.step()
 
-        return loss_q.item(), loss_e.item()
+        return loss_q.item()#, loss_e.item()
 
     # ─────────────────────────────────────────────────────────────────────────
     # Soft target update

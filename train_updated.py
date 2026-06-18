@@ -248,8 +248,6 @@ def train(cfg: argparse.Namespace):
             for k, v in metrics.items():
                 log[k].append(v)
                 
-        # if global_step % cfg.eval_interval == 0 and global_step > 0:
-
 
     tracker.save("qvpo_metrics.npz")
 
