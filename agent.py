@@ -266,13 +266,13 @@ class QVPO:
         self.total_steps += 1
 
         loss_c          = self._update_critic(batch)
-        loss_q, loss_e  = self._update_actor(batch)
+        loss_q  = self._update_actor(batch)
         self._soft_update()
 
         return {
             "loss_critic":  loss_c,
             "loss_q_vlo":   loss_q,
-            "loss_entropy": loss_e,
+            #"loss_entropy": loss_e,
         }
 
     # ─────────────────────────────────────────────────────────────────────────
