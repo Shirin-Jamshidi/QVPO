@@ -234,6 +234,9 @@ def train(cfg: argparse.Namespace):
             #     )
             # ✅ STEP-BASED EVALUATION (fair)
             if global_step % cfg.eval_interval == 0 and global_step > 0:
+                recent = np.mean(log["ep_return"][-20:])
+                print(f"  step={global_step:7d}  ep={ep_count:4d}  "
+                      f"ret(last20)={recent:6.1f}  buffer={len(replay):6d}")
 
                 returns = []
                 env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
