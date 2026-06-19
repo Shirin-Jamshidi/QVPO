@@ -205,44 +205,16 @@ def train(cfg: argparse.Namespace):
             log["step"].append(global_step)
             log["ep_return"].append(ep_return)
 
-            if ep_count % cfg.log_interval == 0:
-                recent = np.mean(log["ep_return"][-20:])
-                print(f"  step={global_step:7d}  ep={ep_count:4d}  "
-                      f"ret(last20)={recent:6.1f}  buffer={len(replay):6d}")
-                returns = []
-
-                env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
-
-                for ep in range(cfg.eval_episodes):
-                    s, _ = env_eval.reset()
-                    done = False
-                    ep_ret = 0.0
-
-                    while not done:
-                        a = agent.select_action(s)
-                        s, r, term, trunc, _ = env_eval.step(a)
-                        ep_ret += r
-                        done = term or trunc
-
-                    returns.append(ep_ret)
-
-                env_eval.close()
-
-                tracker.log_eval(
-                    step=global_step,
-                    returns=returns   # ✅ THIS MUST BE A LIST
-                )
-            # # ✅ STEP-BASED EVALUATION (fair)
-            # if global_step % cfg.eval_interval == 0 and global_step > 0:
+            # if ep_count % cfg.log_interval == 0:
             #     recent = np.mean(log["ep_return"][-20:])
             #     print(f"  step={global_step:7d}  ep={ep_count:4d}  "
             #           f"ret(last20)={recent:6.1f}  buffer={len(replay):6d}")
-
             #     returns = []
+
             #     env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
 
             #     for ep in range(cfg.eval_episodes):
-            #         s, _ = env_eval.reset(seed=cfg.seed + ep)
+            #         s, _ = env_eval.reset()
             #         done = False
             #         ep_ret = 0.0
 
@@ -258,8 +230,36 @@ def train(cfg: argparse.Namespace):
 
             #     tracker.log_eval(
             #         step=global_step,
-            #         returns=returns
+            #         returns=returns   # ✅ THIS MUST BE A LIST
             #     )
+            # ✅ STEP-BASED EVALUATION (fair)
+            if global_step % cfg.log_interval == 0 and global_step > 0:
+                recent = np.mean(log["ep_return"][-20:])
+                print(f"  step={global_step:7d}  ep={ep_count:4d}  "
+                      f"ret(last20)={recent:6.1f}  buffer={len(replay):6d}")
+
+                returns = []
+                env_eval = ContinuousCartPoleEnv(seed=cfg.seed + 999)
+
+                for ep in range(cfg.eval_episodes):
+                    s, _ = env_eval.reset(seed=cfg.seed + ep)
+                    done = False
+                    ep_ret = 0.0
+
+                    while not done:
+                        a = agent.select_action(s)
+                        s, r, term, trunc, _ = env_eval.step(a)
+                        ep_ret += r
+                        done = term or trunc
+
+                    returns.append(ep_ret)
+
+                env_eval.close()
+
+                tracker.log_eval(
+                    step=global_step,
+                    returns=returns
+                )
 
             ep_return = 0.0
             state, _  = env.reset()
